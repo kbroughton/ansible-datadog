@@ -1,0 +1,118 @@
+---
+
+# clean_checks_by_installed.yml
+
+# Remove datadog checks if the service is not installed
+
+# Not all services have installation checks.
+# For example, Jenkins is not a service and has no well defined home dir
+
+- name: Test if btrfs is installed
+  shell: which btrfs
+  ignore_errors: yes
+  register: reg_btrfs
+  tags:
+   - btrfs
+
+- name: Remove btrfs.yaml datadog agent file if not present
+  file: 
+   dest="/etc/dd-agent/conf.d/{{item}}.yaml"
+   state=absent
+  with_items: ['btrfs']
+  when: reg_btrfs.stdout == ''
+  notify: restart dd-agent
+  tags:
+   - btrfs
+
+######
+# This docker checks if the docker daemon is healthy on a host
+# For per container checks see deploy_container_checks.yml
+######
+
+- name: Test if docker is installed
+  shell: which docker
+  ignore_errors: yes
+  register: reg_docker
+
+- name: Remove the docker.yaml file if not present
+  file:
+   state=absent
+   dest="/etc/dd-agent/conf.d/{{item}}.yaml"
+  with_items: ['docker']
+  when: reg_docker.stdout == ''
+  notify: restart dd-agent
+
+# Necessary but not sufficient.
+# Mesos slaves should not have mesos.yaml deployed
+- name: Test if mesos is installed
+  shell: which mesos
+  ignore_errors: yes
+  register: reg_mesos
+
+- name: Remove the mesos.yaml file if not present
+  file:
+   state=absent
+   dest="/etc/dd-agent/conf.d/{{item}}.yaml"
+  with_items: ['mesos']
+  when: reg_mesos.stdout == ''
+  notify: restart dd-agent
+
+- name: Test if marathon is installed
+  shell: which marathon
+  ignore_errors: yes
+  register: reg_marathon
+
+- name: Remove the marathon.yaml file if not present
+  file:
+   state=absent
+   dest="/etc/dd-agent/conf.d/{{item}}.yaml"
+  with_items: ['marathon']
+  when: reg_marathon.stdout == ''
+  notify: restart dd-agent
+
+- name: Test if redis is installed
+  shell: which redis
+  ignore_errors: yes
+  register: reg_redis
+
+- name: Remove the redis.yaml file if not present
+  file:
+   state=absent
+   dest="/etc/dd-agent/conf.d/{{item}}.yaml"
+  with_items: ['redis']
+  when: reg_redis.stdout == ''
+  notify: restart dd-agent
+
+- name: Test if elasticsearch is installed
+  shell: which elasticsearch
+  ignore_errors: yes
+  register: reg_elasticsearch
+
+- name: Remove the elasticsearch.yaml file if not present
+  file:
+   state=absent
+   dest="/etc/dd-agent/conf.d/{{item}}.yaml"
+  with_items: ['elasticsearch']
+  when: reg_elasticsearch.stdout == ''
+  notify: restart dd-agent
+
+- name: Test if sshd is installed
+  shell: which ssh
+  ignore_errors: yes
+  register: reg_ssh
+
+- name: Remove the ssh_check.yaml file if not present
+  file:
+   state=absent
+   dest="/etc/dd-agent/conf.d/{{item}}.yaml"
+  with_items: ['ssh_check']
+  when: true
+  notify: restart dd-agent
+
+- name: Remove the jenkins.yaml file if not present
+  file:
+   state=absent
+   dest="/etc/dd-agent/conf.d/{{item}}.yaml"
+  with_items: ['jenkins']
+  when: true
+  notify: restart dd-agent

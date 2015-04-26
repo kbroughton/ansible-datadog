@@ -1,3 +1,247 @@
 ---
-datadog_api_key: "youshouldsetthis"
 
+# Clean up checks that should not be there
+datadog_clean_checks_by_process: no
+datadog_clean_checks_by_groups: no
+datadog_clean_checks_by_installed: no
+datadog_docker_debug: no
+
+datadog_tmp_dir: /tmp
+
+datadog_uninstall: no
+
+datadog_api_key: "{{ lookup('env','DATADOG_API_KEY') }}"
+
+datadog_pip_packages:
+ - dogstatsd-python
+
+datadog_npm_packages:
+ - node-dogstatsd
+
+datadog_apt_packages: 
+ - python-pip
+
+datadog_node_packages:
+ - nodejs
+ - npm
+
+datadog_run_files:
+ - /tmp/dd-agent.pid
+ - /var/run/datadog-supervisord.pid
+ - /tmp/dogstatsd.pid
+ - /tmp/CollectorStatus.pickle  
+ - /tmp/DogstatsdStatus.pickle  
+ - /tmp/ForwarderStatus.pickle
+ - /var/tmp/datadog-supervisor.sock
+
+# Add this to docker agent when docker role is pushed
+# usermod -a -G docker dd-agent
+
+# http://wiki.nginx.org/HttpStubStatusModule
+# --with-http_stub_status_module
+
+# searches /proc files for regex or exact matches
+datadog_process_checks:
+ name: ssh
+ search_string: ['ssh', 'sshd']
+ exact_match: 'False'
+ cpu_check_interval:  1.0
+ ignore_denied_access: 'True'
+ thresholds:
+  critical: [1,7]
+  warning: [1,5]
+
+#############################
+# Docker host
+#############################
+docker_dd_default_url: "unix://var/run/docker.sock"
+docker_dd_default_new_tag_names: true
+docker_dd_default_include: []
+docker_dd_default_exclude: []
+docker_dd_default_events: true
+docker_dd_default_collect_container_size: false
+docker_dd_default_collect_all_metrics: false
+
+docker_dd:
+ init_config:
+  root: '/'
+ instances:
+  - url: "{{docker_dd_default_url}}"
+
+#############################
+# Btrfs
+#############################
+
+# you must exclude devices like mounted nas or you get
+# OSError(13, Permission Denied)
+btrfs_dd:
+ init_config:
+ instances:
+  - excluded_devices: []
+
+#############################
+# Mesos
+#############################
+mesos_master_ip: 'localhost'
+mesos_master_port: 5050
+
+mesos_dd:
+ init_config:
+  # time to wait on a Mesos API request
+  default_timeout: 5
+
+ instances:
+  - url: "http://{{mesos_master_ip}}:{{mesos_master_port}}"
+  # - url: "https://server:port"
+
+#############################
+# Marathon master 
+#############################
+
+marathon_master_ip: localhost
+marathon_master_port: 8080
+
+marathon_dd:
+ init_config:
+ # time to wait on a Marathon API request
+   default_timeout: 5
+
+ instances:
+ # url: the API endpoint of your Marathon master
+  - url: "http://{{marathon_master_ip}}:{{marathon_master_port}}"
+
+#############################
+# Elasticsearch
+#############################
+
+elasticsearch_dd:
+ init_config:
+
+ instances:
+  # The URL where elasticsearch accepts HTTP requests. This will be used to
+  # fetch statistics from the nodes and information about the cluster health.
+  #
+  # If you're using basic authentication with a 3rd party library, for example
+  # elasticsearch-http-basic, you will need to specify a value for username
+  # and password for every instance that requires authentication.
+  #
+  # If your cluster is hosted externally (i.e., you're not pointing to localhost)
+  # you will need to set `is_external` to true otherwise the check will compare
+  # the local hostname against hostnames of the Elasticsearch nodes and only
+  # submit metrics if they match.
+  #
+  - url: http://localhost:9200
+    # username: username
+    # password: password
+    # is_external: false
+    # tags:
+    #   - 'tag1:key1'
+    #   - 'tag2:key2'
+
+#############################
+# jenkins
+#############################
+
+jenkins_dd:
+ init_config:
+
+ instances:
+  - name: "{{ jenkins_cluster_name | default('jenkins_default_cluster') }}"
+    jenkins_home: "{{ jenkins_dd_home | default('/var/lib/jenkins') }}"
+
+
+#############################
+# HTTP_CHECK
+#############################
+
+http_check_dd: ''
+ # init_config:
+ #  ca_certs: /etc/ssl/certs/ca-certificates.crt
+ # instances:
+ #  - url: 
+ #    timeout:
+ #    username:
+ #    password:
+ #    threshold:
+ #    window:
+ #    include_content:
+ #    collect_response_time:
+ #    disable_ssl_validation:
+ #    check_certificate_expiration:
+ #    days_warning:
+ #    headers:
+ #     Host: alternative.host.example.com
+ #     X-Auth-Token: SOME-AUTH-TOKEN
+ #    tags:
+ #     - url:http://alternative.host.example.com
+ #     - env:production
+ #    notify: 
+ #     - devops@c12e.com
+ #     - slack
+
+# cogscale endpoints
+# <host>:3125
+#    /api/v1/services
+#    /api/v1/activations
+#    /api/v1/status
+#    /api/v1/models/*/*/default/metadata
+#    /api/v1/mappings
+
+# <host>:3280
+#    /api/v1/domains
+
+#############################
+# Redis
+#############################
+
+redis_dd:
+ init_config:  
+
+ instances:
+   - host: "{{redis_host | default('localhost') }}"
+     port: 6379
+   # Can be used in lieu of host/port
+   #
+   # unix_socket_path: /var/run/redis/redis.sock # optional, can be used in lieu of host/port
+   # Addional connection options
+   #
+   # db: 0
+   # password: mypassword
+   # socket_timeout: 5
+   # Optional extra tags added to all redis metrics
+   # tags:
+   #   - optional_tag1
+   #   - optional_tag2
+   #
+   # Check the length of these keys
+   #
+   # keys:
+   #   - key1
+   #   - key2
+   # Display a warning in the info page if the keys we're tracking are missing
+   # Default: True
+   #
+   # warn_on_missing_keys: True
+
+#############################
+# Mongo
+#############################
+
+mongo_dd:
+ init_config:
+
+ instances:
+   # Specify the MongoDB URI, with database to use for reporting (defaults to "admin")
+   - server: mongodb://localhost:27017/admin
+     # tags:
+     #   - optional_tag1
+     #   - optional_tag2
+
+     # Optional SSL parameters, see https://github.com/mongodb/mongo-python-driver/blob/2.6.3/pymongo/mongo_client.py#L193-L212
+     # for more details
+     #
+     # ssl: False # Optional (default to False)
+     # ssl_keyfile: # Path to the private keyfile used to identify the local
+     # ssl_certfile: # Path to the certificate file used to identify the local connection against mongod.
+     # ssl_cert_reqs: # Specifies whether a certificate is required from the other side of the connection, and whether it will be validated if provided.
+     # ssl_ca_certs: #  Path to the ca_certs file

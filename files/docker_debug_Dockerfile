@@ -1,0 +1,5 @@
+# docker_debug_Dockerfile
+
+FROM datadog/docker-dd-agent
+
+ADD docker.py /etc/dd-agent/checks.d/docker.py

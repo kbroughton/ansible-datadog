@@ -1,4 +1,52 @@
+
+- name: START DATADOG
+  debug: msg="starting datadog role"
+
+- include: uninstall_datadog.yml 
+  when: datadog_uninstall == "yes"
+
+- include: clean_checks_by_groups.yml
+  when: datadog_clean_checks_by_groups == "yes"
+
+- include: clean_checks_by_installed.yml
+  when: datadog_clean_checks_by_installed == "yes"
+
+- include: clean_checks_by_process.yml
+  when: datadog_clean_checks_by_process == "yes"
+
 - include: debian.yml
   when: ansible_os_family == "Debian"
+
 - include: redhat.yml
   when: ansible_os_family == "RedHat"
+
+- include: deploy_docker_debug.yml
+  when: datadog_docker_debug == "yes"
+  tags:
+   - datadog_docker_debug
+
+- name: Install pip packages for datadog
+  pip: 
+   name: "{{item}}"
+  with_items: datadog_pip_packages
+
+- name: Install npm packages for datadog
+  npm:
+   name: "{{item}}"
+   global: yes
+  with_items: datadog_node_packages
+  when: false # defined groups['nodejs'] and inventory_hostname in groups['nodejs']
+
+- name: Template datadog.conf
+  template: src=datadog.conf.j2 dest=/etc/dd-agent/datadog.conf
+  notify: restart dd-agent
+
+- include: deploy_checks.yml
+
+- include: deploy_container_checks.yml
+
+- name: Start the dd-agent service
+  service: name=datadog-agent state=started
+
+- name: DATADOG FINISHED
+  debug: msg="datadog role finished"

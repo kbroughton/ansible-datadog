@@ -1,0 +1,130 @@
+---
+
+# clean_checks.yml
+
+# Remove datadog checks is service is not running
+# Use this with care as some processes may have temporarily failed
+
+
+- name: Test if any disks are btrfs 
+  shell: cat /etc/fstab | grep btrfs
+  register: reg_btrfs_present 
+  tags:
+   - btrfs 
+
+- name: Remove btrfs.yaml datadog agent file if disks not present
+  file: 
+   dest="/etc/dd-agent/conf.d/{{item}}.yaml"
+   state=absent
+  with_items: ['btrfs']
+  when: reg_btrfs_present.stdout == ''
+  notify: restart dd-agent
+  tags:
+   - btrfs
+
+######
+# This docker checks if the docker daemon is healthy on a host
+# For per container checks see deploy_container_checks.yml
+######
+
+- name: Test if docker is running
+  shell: pgrep docker
+  ignore_errors: yes
+  register: reg_docker
+  tags:
+   - docker
+
+- name: Remove the docker.yaml file if process not present
+  file:
+   state=absent
+   dest="/etc/dd-agent/conf.d/{{item}}.yaml"
+  with_items: ['docker']
+  when: reg_docker.stdout == ''
+  notify: restart dd-agent
+  tags:
+   - docker
+
+- name: Test if mesos master is running
+  shell: pgrep mesos-master
+  ignore_errors: yes
+  register: reg_mesos
+  tags:
+   - mesos
+
+- name: Remove the mesos.yaml file if process not present
+  file:
+   state=absent
+   dest="/etc/dd-agent/conf.d/{{item}}.yaml"
+  with_items: ['mesos']
+  when: reg_mesos.stdout == ''
+  notify: restart dd-agent
+  tags:
+   - mesos
+
+- name: Test if marathon is running
+  shell: ps aux|grep marathon
+  ignore_errors: yes
+  register: reg_marathon
+  tags:
+   - marathon
+
+- name: Remove the marathon.yaml file if process not present
+  file:
+   state=absent
+   dest="/etc/dd-agent/conf.d/{{item}}.yaml"
+  with_items: ['marathon']
+  when: reg_marathon.stdout == ''
+  notify: restart dd-agent
+  tags:
+   - marathon
+
+- name: Test if redis is running
+  shell: pgrep redis
+  ignore_errors: yes
+  register: reg_redis
+  tags:
+   - redis
+
+- name: Remove the redis.yaml file if process not present
+  file:
+   state=absent
+   dest="/etc/dd-agent/conf.d/{{item}}.yaml"
+  with_items: ['redis']
+  when: reg_redis.stdout == ''
+  notify: restart dd-agent
+  tags:
+   - redis
+
+- name: Test if elasticsearch is running
+  shell: pgrep elasticsearch
+  ignore_errors: yes
+  register: reg_elasticsearch
+  tags:
+   - elasticsearch
+
+- name: Remove the elasticsearch.yaml file if process not present
+  file:
+   state=absent
+   dest="/etc/dd-agent/conf.d/{{item}}.yaml"
+  with_items: ['elasticsearch']
+  when: reg_elasticsearch.stdout == ''
+  notify: restart dd-agent
+  tags:
+   - elasticsearch
+
+- name: Test if jenkins is running
+  shell: "ps aux | grep [j]enkins "
+  ignore_errors: yes
+  register: reg_jenkins
+  tags:
+   - jenkins
+
+- name: Remove the jenkins.yaml file if process not present
+  file:
+   state=absent
+   dest="/etc/dd-agent/conf.d/{{item}}.yaml"
+  with_items: ['jenkins']
+  when: reg_jenkins.stdout == ''
+  notify: restart dd-agent
+  tags:
+   - jenkins

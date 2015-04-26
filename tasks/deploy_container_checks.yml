@@ -1,0 +1,69 @@
+---
+
+# deploy_container_checks.yml
+
+- name: Test if dockerized mesos is installed
+  shell: docker ps | grep mesos
+  ignore_errors: yes
+  register: reg_d_mesos
+
+- name: Template the dockerized /etc/dd-agent/conf.d/mesos.yaml file
+  template: 
+   src: "../templates/{{item}}.yaml.j2"
+   dest: "/etc/dd-agent/conf.d/{{item}}.yaml"
+  with_items: ['mesos']
+  when: inventory_hostname in groups['mesos'] or reg_d_mesos.stdout != ''
+  notify: restart dd-agent
+
+- name: Test if dockerized marathon is installed
+  shell: docker ps | grep marathon
+  ignore_errors: yes
+  register: reg_d_marathon
+
+- name: Template the dockerized /etc/dd-agent/conf.d/marathon.yaml file
+  template: 
+   src: "../templates/{{item}}.yaml.j2"
+   dest: "/etc/dd-agent/conf.d/{{item}}.yaml"
+  with_items: ['marathon']
+  when: inventory_hostname in groups[item] or reg_d_marathon.stdout != ''
+  notify: restart dd-agent
+
+- name: Test if dockerized redis is installed
+  shell: docker ps | grep redis
+  ignore_errors: yes
+  register: reg_d_redis
+
+- name: Template the dockerized /etc/dd-agent/conf.d/redis.yaml file
+  template: 
+   src: "../templates/{{item}}.yaml.j2"
+   dest: "/etc/dd-agent/conf.d/{{item}}.yaml"
+  with_items: ['redis']
+  when: inventory_hostname in groups[item] or reg_d_redis.stdout != ''
+  notify: restart dd-agent
+
+- name: Test if dockerized elasticsearch is installed
+  shell: docker ps | grep elasticsearch
+  ignore_errors: yes
+  register: reg_d_elasticsearch
+
+- name: Template the dockerized /etc/dd-agent/conf.d/elasticsearch.yaml file
+  template: 
+   src: "../templates/{{item}}.yaml.j2"
+   dest: "/etc/dd-agent/conf.d/{{item}}.yaml"
+  with_items: ['elasticsearch']
+  when: inventory_hostname in groups[item] or reg_d_elasticsearch.stdout != ''
+  notify: restart dd-agent
+
+
+- name: Test if dockerized jenkins is installed
+  shell: docker ps | grep jenkins
+  ignore_errors: yes
+  register: reg_d_jenkins
+
+- name: Template the dockerized /etc/dd-agent/conf.d/jenkins.yaml file
+  template: 
+   src: "../templates/{{item}}.yaml.j2"
+   dest: "/etc/dd-agent/conf.d/{{item}}.yaml"
+  with_items: ['jenkins']
+  when: reg_d_jenkins.stdout != ''
+  notify: restart dd-agent

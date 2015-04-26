@@ -1,0 +1,49 @@
+---
+
+# uninstall_datadog.yml
+
+#####################################################
+# Common code with handlers/main.yml
+# couldn't figure out how to include: 
+#####################################################
+- name: restart dd-agent
+  shell: dd-agent stop
+  changed_when: true
+
+- name: stop all the processes running as dd-agent user 
+  service:
+   name: datadog-agent
+   state: stopped
+  changed_when: true
+
+- name: remove the /tmp/dd-agent.pid file 
+  file: 
+   state: absent
+   dest: /tmp/dd-agent.pid
+  changed_when: true
+
+- name: kill all the zombie processes running as dd-agent user 
+  shell: kill -9 $(pgrep datadog)
+  changed_when: true
+  ignore_errors: yes
+
+- name: kill the rest of the zombies
+  shell: kill -9 $(ps aux|grep [d]atadog | tr -s ' ' | cut -f2 -d' ')
+  changed_when: true
+  ignore_errors: yes
+
+###################################################
+
+- name: remove datadog files
+  file:
+   dest: "{{item}}"
+   state: absent
+  with_items: datadog_run_files
+
+- name: uninstall datadog via apt
+  apt:
+   update: yes
+   state: absent
+   name: "{{item}}"
+  with_items:
+   - datadog-agent

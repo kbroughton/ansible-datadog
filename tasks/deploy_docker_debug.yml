@@ -1,0 +1,28 @@
+# deploy_docker_debug.yml
+
+# This is not part of a regular deployment.  It was a step suggested
+# by the datadog team to debug issues for problem docker deployments
+# https://gist.github.com/LotharSee/9fa7f7acaa3a66a57db2
+
+- name: copy docker debug files to target
+  copy:
+   src: "docker_debug_{{item}}"
+   dest: "{{datadog_tmp_dir}}/{{item}}"
+  with_items:
+   - Dockerfile
+   - docker.py
+
+- name: build docker debug container on public registry
+  shell: chdir="{{datadog_tmp_dir}}" docker build -t debug-dd-agent .
+
+- name: run diagnostic
+  shell: docker run -d --name debug-dd-agent 
+                    -h `hostname` 
+                    -v /var/run/docker.sock:/var/run/docker.sock 
+                    -v /proc/mounts:/host/proc/mounts:ro 
+                    -v /sys/fs/cgroup/:/host/sys/fs/cgroup:ro 
+                    -e API_KEY={{datadog_api_key}} 
+                    debug-dd-agent
+  register: reg_docker_debug
+
+- debug: msg="{{reg_docker_debug}}"

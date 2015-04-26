@@ -1,0 +1,82 @@
+---
+
+# clean_checks_by_groups.yml
+
+# Tag based cleaning.  Assumes perfect tagging.
+# Remove checks if host is not tagged for that process.
+
+
+
+- name: Remove btrfs.yaml datadog agent fi if not tagged
+  file: 
+   dest="/etc/dd-agent/conf.d/{{item}}.yaml"
+   state=absent
+  with_items: ['btrfs']
+  when: inventory_hostname not in groups['btrfs']
+  notify: restart dd-agent
+  tags:
+   - btrfs
+
+######
+# This docker checks if the docker daemon is healthy on a host
+# For per container checks see deploy_container_checks.yml
+######
+
+- name: Remove the docker.yaml file if not tagged
+  file:
+   state=absent
+   dest="/etc/dd-agent/conf.d/{{item}}.yaml"
+  with_items: ['docker']
+  when: inventory_hostname in groups['docker']
+  notify: restart dd-agent
+  tags:
+   - docker
+
+- name: Remove the mesos.yaml file if not tagged
+  file:
+   state=absent
+   dest="/etc/dd-agent/conf.d/{{item}}.yaml"
+  with_items: ['mesos']
+  when: inventory_hostname in groups['mesos']
+  notify: restart dd-agent
+  tags:
+   - mesos
+
+- name: Remove the marathon.yaml file if not tagged
+  file:
+   state=absent
+   dest="/etc/dd-agent/conf.d/{{item}}.yaml"
+  with_items: ['marathon']
+  when: inventory_hostname in groups[item]
+  notify: restart dd-agent
+  tags:
+   - marathon
+
+- name: Remove the redis.yaml file if not tagged
+  file:
+   state=absent
+   dest="/etc/dd-agent/conf.d/{{item}}.yaml"
+  with_items: ['redis']
+  when: inventory_hostname in groups[item]
+  notify: restart dd-agent
+  tags:
+   - redis
+
+- name: Remove the elasticsearch.yaml file if not tagged
+  file:
+   state=absent
+   dest="/etc/dd-agent/conf.d/{{item}}.yaml"
+  with_items: ['elasticsearch']
+  when: inventory_hostname in groups[item]
+  tags:
+   - elasticsearch 
+
+- name: Remove the jenkins.yaml file if not tagged
+  file:
+   state=absent
+   dest="/etc/dd-agent/conf.d/{{item}}.yaml"
+  with_items: ['jenkins']
+  when: inventory_hostname in groups[item]
+  notify: restart dd-agent
+  tags:
+   - jenkins

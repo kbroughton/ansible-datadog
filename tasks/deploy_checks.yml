@@ -1,0 +1,170 @@
+---
+
+# deploy_checks.yml
+
+# Care must be taken to deploy checks only to the hosts that need it
+# otherwise agents will complain services are down
+
+# These checks are for non-containerized processes
+
+# - name: Template the service specific agent conf.d files
+#   template: 
+#    src="{{item}}.yaml.j2"
+#    dest="/etc/dd-agent/conf.d/{{item | replace('j2','')}}"
+#   with_fileglob: "../templates/*.yaml.j2"
+#   when: inventory_hostname in groups[item | replace('.yaml.j2','')]
+#   notify: restart dd-agent
+
+- name: Test if btrfs is installed
+  shell: which btrfs
+  ignore_errors: yes
+  register: reg_btrfs
+  tags:
+   - btrfs
+
+- name: Template /etc/dd-agent/conf.d/btrfs.yaml datadog agent file
+  template: 
+   src="../templates/{{item}}.yaml.j2"
+   dest="/etc/dd-agent/conf.d/{{item}}.yaml"
+  with_items: ['btrfs']
+  when: inventory_hostname in groups['btrfs'] or (reg_btrfs.stdout != '')
+  notify: restart dd-agent
+  tags:
+   - btrfs
+
+######
+# This docker checks if the docker daemon is healthy on a host
+# For per container checks see deploy_container_checks.yml
+######
+
+- name: Test if docker is installed
+  shell: which docker
+  ignore_errors: yes
+  register: reg_docker
+
+- name: Ensure the dd-agent is in docker group 
+  user: name=dd-agent groups=docker append=yes
+  when: inventory_hostname in groups['docker'] or reg_docker.stdout != ''
+
+- name: Template the /etc/dd-agent/conf.d/docker.yaml file
+  template: 
+   src="../templates/{{item}}.yaml.j2"
+   dest="/etc/dd-agent/conf.d/{{item}}.yaml"
+  with_items: ['docker']
+  when: inventory_hostname in groups['docker'] or reg_docker.stdout != ''
+  notify: restart dd-agent
+
+- name: Test if mesos is installed
+  shell: which mesos
+  ignore_errors: yes
+  register: reg_mesos
+
+- name: Template the /etc/dd-agent/conf.d/mesos.yaml file
+  template: 
+   src="../templates/{{item}}.yaml.j2"
+   dest="/etc/dd-agent/conf.d/{{item}}.yaml"
+  with_items: ['mesos']
+  when: inventory_hostname in groups['mesos'] or reg_mesos.stdout != ''
+  notify: restart dd-agent
+
+- name: Test if marathon is installed
+  shell: which marathon
+  ignore_errors: yes
+  register: reg_marathon
+
+- name: Template the /etc/dd-agent/conf.d/marathon.yaml file
+  template: 
+   src="../templates/{{item}}.yaml.j2"
+   dest="/etc/dd-agent/conf.d/{{item}}.yaml"
+  with_items: ['marathon']
+  when: inventory_hostname in groups[item] or reg_marathon.stdout != ''
+  notify: restart dd-agent
+
+- name: Test if redis is installed
+  shell: which redis
+  ignore_errors: yes
+  register: reg_redis
+
+- name: Template the /etc/dd-agent/conf.d/redis.yaml file
+  template: 
+   src="../templates/{{item}}.yaml.j2"
+   dest="/etc/dd-agent/conf.d/{{item}}.yaml"
+  with_items: ['redis']
+  when: inventory_hostname in groups[item] or reg_redis.stdout != ''
+  notify: restart dd-agent
+
+- name: Test if elasticsearch is installed
+  shell: which elasticsearch
+  ignore_errors: yes
+  register: reg_elasticsearch
+
+- name: Template the /etc/dd-agent/conf.d/elasticsearch.yaml file
+  template: 
+   src="../templates/{{item}}.yaml.j2"
+   dest="/etc/dd-agent/conf.d/{{item}}.yaml"
+  with_items: ['elasticsearch']
+  when: inventory_hostname in groups[item] or reg_elasticsearch.stdout != ''
+  notify: restart dd-agent
+
+# - name: Test if sshd is installed
+#   shell: which ssh
+#   ignore_errors: yes
+#   register: reg_ssh
+
+# - name: Template the /etc/dd-agent/conf.d/ssh_check.yaml file
+#   template: 
+#    src="../templates/{{item}}.yaml.j2"
+#    dest="/etc/dd-agent/conf.d/{{item}}.yaml"
+#   with_items: ['ssh_check']
+#   when: reg_ssh.stdout != ''
+#   notify: restart dd-agent
+
+# - name: Ensure the pubkey for "{{ansible_ssh_user}}" exists
+#   user: name=ubuntu groups=sudo generate_ssh_key=yes
+#   sudo: yes
+
+# - name: Get the pubkey for "{{ansible_ssh_user}}"
+#   shell: cat "{{dest_ssh_home}}/id_rsa.pub"
+#   register: reg_ssh_pub_key
+
+# - name: Ensure localhost is in known_hosts for "{{ansible_ssh_user}}"
+#   lineinfile: 
+#    line="localhost {{reg_ssh_pub_key.stdout}}"
+#    dest="{{dest_ssh_home}}/known_hosts"
+#    create=yes
+#   when: reg_ssh.stdout != ''
+#   notify: restart dd-agent
+
+- name: Test if jenkins is installed
+  uri: 
+   url: http://solar.insights.ai:8080/v2/apps
+  ignore_errors: yes
+  register: reg_jenkins
+  tags:
+   - jenkins
+
+# - debug: msg="{{reg_jenkins}}"
+# - debug: msg="{{reg_jenkins | selectattr("id", "equalto", "/jenkins") | list}}"
+# - debug: msg="{{reg_jenkins.json.apps | selectattr("id", "equalto", "/jenkins") | select('constraints')}}"
+
+- name: Template the /etc/dd-agent/conf.d/jenkins.yaml file
+  template: 
+   src: "../templates/{{item}}.yaml.j2"
+   dest: "/etc/dd-agent/conf.d/{{item}}.yaml"
+  with_items: ['jenkins']
+  when: false # reg_jenkins.stdout != ''
+  notify: restart dd-agent
+  tags:
+   - jenkins
+
+- debug: msg="{{groups}}"
+
+- name: Template the http checks appropriate for the host 
+  template:
+   src: "../templates/{{item}}.yaml.j2"
+   dest: "/etc/dd-agent/conf.d/{{item}}.yaml"
+  with_items: ['http_check']
+  when: http_check_dd != ''
+  notify: restart dd-agent
+  tags:
+   - http_check
