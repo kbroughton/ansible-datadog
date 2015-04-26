@@ -1,15 +1,15 @@
 ---
-- apt_key: id=C7A7DA52 keyserver=keyserver.ubuntu.com state=present
+- name: Install the datadog apt key
+  apt_key: id=C7A7DA52 keyserver=keyserver.ubuntu.com state=present
 
-- apt_repository: repo='deb http://apt.datadoghq.com/ stable main' state=present update_cache=yes
+- name: Install the apt repo for datadog
+  apt_repository: repo='deb http://apt.datadoghq.com/ stable main' state=present update_cache=yes
 
-- apt: name=datadog-agent state=latest
+- name: Apt install datadog
+  apt: name=datadog-agent state=latest
 
-- template: src=datadog.conf.j2 dest=/etc/dd-agent/datadog.conf
-  notify: restart datadog
+- name: Install datadog apt dependencies
+  apt: name="{{item}}"
+  with_items: datadog_apt_packages
 
-- template: src=process.yaml.j2 dest=/etc/dd-agent/conf.d/process.yaml
-  notify: restart datadog
-
-- service: name=datadog-agent state=started
 
