@@ -1,0 +1,11 @@
+# btrfs.yaml.j2
+
+# {{ ansible_managed }}
+
+# you must exclude devices like mounted nas or you get
+# OSError(13, Permission Denied)
+
+init_config: 
+{% if btrfs_dd.init_config %}{{ btrfs_dd.init_config | to_nice_yaml }}{% endif %}
+
+instances: {{ btrfs_dd.instances }}

@@ -1,0 +1,9 @@
+# docker.yaml.j2
+
+# {{ ansible_managed }}
+
+init_config:
+ {% if docker_dd.init_config %}{{ docker_dd.init_config | to_nice_yaml }}{% endif %}
+
+instances:
+ {{ docker_dd.instances | to_nice_yaml }}

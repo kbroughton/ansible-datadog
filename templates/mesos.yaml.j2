@@ -1,0 +1,8 @@
+# mesos.yaml.j2
+# {{ ansible_managed }}
+
+init_config: 
+ {% if mesos_dd.init_config %}{{ mesos_dd.init_config | to_nice_yaml }}{% endif %}
+
+instances: 
+ {{ mesos_dd.instances | to_nice_yaml }}

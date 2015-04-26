@@ -1,0 +1,9 @@
+# elasticsearch.yaml.j2
+ 
+# {{ ansible_managed }}
+
+init_config: 
+ {% if elasticsearch_dd.init_config %}{{ elasticsearch_dd.init_config | to_nice_yaml }}{% endif %}
+
+instances: 
+ {{ elasticsearch_dd.instances | to_nice_yaml }}

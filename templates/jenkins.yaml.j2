@@ -1,0 +1,10 @@
+# jenkins.yaml.j2
+
+# {{ ansible_managed }}
+
+init_config: 
+ {% if jenkins_dd.init_config %}{{ jenkins_dd.init_config | to_nice_yaml }}{% endif %}
+
+instances: 
+ {{ jenkins_dd.instances | to_nice_json }}
+

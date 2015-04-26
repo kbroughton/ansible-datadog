@@ -1,0 +1,9 @@
+# mongo.yml
+
+# {{ ansible_managed }}
+
+init_config: 
+ {% if mongo_dd.init_config %}{{ mongo_dd.init_config | to_nice_yaml }}{% endif %}
+
+instances: 
+ {{ mongo_dd.instances | to_nice_yaml }}

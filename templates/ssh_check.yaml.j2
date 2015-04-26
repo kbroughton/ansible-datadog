@@ -1,0 +1,10 @@
+init_config:
+
+instances:
+  - host: localhost                               # required
+    username: {{ansible_ssh_user}}                # required
+    # password: abcd                              # optional
+    # port: 22                    # optional, leaving blank defaults to port 22
+    # sftp_check: True            # optional, leaving blank defaults to True
+    private_key_file: {{dest_ssh_home}}/id_rsa           # optional, file path to private key
+    add_missing_keys: True      # optional, leaving blank defaults to False

@@ -1,0 +1,8 @@
+# http_check.yaml.j2
+
+# {{ansible_managed}}
+
+init_config: 
+ {% if http_check_dd.init_config %}{{ http_check_dd.init_config | to_nice_yaml }}{% endif %}
+
+instances: {{ http_check_dd.instances }}

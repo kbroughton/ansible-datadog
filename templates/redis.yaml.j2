@@ -1,0 +1,8 @@
+# redis.yaml.j2
+# {{ansible_managed}}
+
+init_config: 
+ {% if redis_dd.init_config %}{{ redis_dd.init_config | to_nice_yaml }}{% endif %}
+
+instances: 
+ {{ redis_dd.instances | to_nice_yaml }}

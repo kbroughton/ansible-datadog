@@ -1,0 +1,9 @@
+# marathon.yaml.j2
+
+# {{ ansible_managed }}
+
+init_config: 
+ {% if marathon_dd.init_config %}{{ marathon_dd.init_config | to_nice_yaml }}{% endif %}
+
+instances: 
+ {{ marathon_dd.instances | to_nice_yaml }}
