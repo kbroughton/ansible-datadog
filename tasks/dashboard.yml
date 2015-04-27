@@ -4,7 +4,7 @@
 # Screencast of dashboard cli api https://vimeo.com/31496705
 
 - name: Pull datadog dashboards to this repo
-  local_action:
-   shell: dog pull_all dashboards
+  local_action: shell dog dashboard pull_all
   run_once: yes
+  sudo: no
 
