@@ -45,6 +45,11 @@
 
 - include: deploy_container_checks.yml
 
+- include: dashboard.yml
+  when: datadog_dashboard == "yes"
+  tags:
+   - datadog_dashboard
+
 - name: Start the dd-agent service
   service: name=datadog-agent state=started
 

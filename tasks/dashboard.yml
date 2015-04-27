@@ -1,0 +1,10 @@
+# dashboard.yml
+
+# manage dashboard
+# Screencast of dashboard cli api https://vimeo.com/31496705
+
+- name: Pull datadog dashboards to this repo
+  local_action:
+   shell: dog pull_all dashboards
+  run_once: yes
+

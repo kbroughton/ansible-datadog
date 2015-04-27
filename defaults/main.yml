@@ -9,6 +9,7 @@ datadog_docker_debug: no
 datadog_tmp_dir: /tmp
 
 datadog_uninstall: no
+datadog_dashboard: no
 
 datadog_api_key: "{{ lookup('env','DATADOG_API_KEY') }}"
 
