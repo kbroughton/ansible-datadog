@@ -12,7 +12,7 @@
 #    src="{{item}}.yaml.j2"
 #    dest="/etc/dd-agent/conf.d/{{item | replace('j2','')}}"
 #   with_fileglob: "../templates/*.yaml.j2"
-#   when: inventory_hostname in groups[item | replace('.yaml.j2','')]
+#   when: (' in groups and inventory_hostname in groups[item | replace('.yaml.j2','')]
 #   notify: restart dd-agent
 
 - name: Test if btrfs is installed
@@ -27,7 +27,7 @@
    src="../templates/{{item}}.yaml.j2"
    dest="/etc/dd-agent/conf.d/{{item}}.yaml"
   with_items: ['btrfs']
-  when: inventory_hostname in groups['btrfs'] or (reg_btrfs.stdout != '')
+  when: (item in groups and inventory_hostname in groups[item]) or (reg_btrfs.stdout != '')
   notify: restart dd-agent
   tags:
    - btrfs
@@ -44,14 +44,14 @@
 
 - name: Ensure the dd-agent is in docker group 
   user: name=dd-agent groups=docker append=yes
-  when: inventory_hostname in groups['docker'] or reg_docker.stdout != ''
+  when: (item in groups and inventory_hostname in groups[item']) or reg_docker.stdout != ''
 
 - name: Template the /etc/dd-agent/conf.d/docker.yaml file
   template: 
    src="../templates/{{item}}.yaml.j2"
    dest="/etc/dd-agent/conf.d/{{item}}.yaml"
   with_items: ['docker']
-  when: inventory_hostname in groups['docker'] or reg_docker.stdout != ''
+  when: (item in groups and inventory_hostname in groups[item']) or reg_docker.stdout != ''
   notify: restart dd-agent
 
 - name: Test if mesos is installed
@@ -64,7 +64,7 @@
    src="../templates/{{item}}.yaml.j2"
    dest="/etc/dd-agent/conf.d/{{item}}.yaml"
   with_items: ['mesos']
-  when: inventory_hostname in groups['mesos'] or reg_mesos.stdout != ''
+  when: (item in groups and inventory_hostname in groups[item]) or reg_mesos.stdout != ''
   notify: restart dd-agent
 
 - name: Test if marathon is installed
@@ -77,7 +77,7 @@
    src="../templates/{{item}}.yaml.j2"
    dest="/etc/dd-agent/conf.d/{{item}}.yaml"
   with_items: ['marathon']
-  when: inventory_hostname in groups[item] or reg_marathon.stdout != ''
+  when: (item in groups and inventory_hostname in groups[item]) or reg_marathon.stdout != ''
   notify: restart dd-agent
 
 - name: Test if redis is installed
@@ -90,7 +90,7 @@
    src="../templates/{{item}}.yaml.j2"
    dest="/etc/dd-agent/conf.d/{{item}}.yaml"
   with_items: ['redis']
-  when: inventory_hostname in groups[item] or reg_redis.stdout != ''
+  when: (item in groups and inventory_hostname in groups[item]) or reg_redis.stdout != ''
   notify: restart dd-agent
 
 - name: Test if elasticsearch is installed
@@ -103,7 +103,7 @@
    src="../templates/{{item}}.yaml.j2"
    dest="/etc/dd-agent/conf.d/{{item}}.yaml"
   with_items: ['elasticsearch']
-  when: inventory_hostname in groups[item] or reg_elasticsearch.stdout != ''
+  when: (item in groups and inventory_hostname in groups[item]) or reg_elasticsearch.stdout != ''
   notify: restart dd-agent
 
 # - name: Test if sshd is installed
